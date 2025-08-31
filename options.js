@@ -14,8 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
   async function loadSettings() {
     chrome.storage.sync.get(['apiKey', 'model', 'prompt', 'debugMode'], (result) => {
       apiKeyInput.value = result.apiKey || '';
-      modelInput.value = result.model || 'google/gemini-2.5-pro';
-      promptInput.value = result.prompt || 'turn the image into a csv';
+      modelInput.value = result.model || 'google/gemini-2.5-flash';
+      promptInput.value = result.prompt || 'turn the image into a csv. only return a csv.';
       debugModeInput.checked = result.debugMode || false;
     });
   }
@@ -25,8 +25,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const settings = {
       apiKey: apiKeyInput.value.trim(),
-      model: modelInput.value.trim() || 'google/gemini-2.5-pro',
-      prompt: promptInput.value.trim() || 'turn the image into a csv',
+      model: modelInput.value.trim() || 'google/gemini-2.5-flash',
+      prompt: promptInput.value.trim() || 'turn the image into a csv. only return a csv.',
       debugMode: debugModeInput.checked
     };
 

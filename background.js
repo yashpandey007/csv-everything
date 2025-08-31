@@ -39,14 +39,14 @@ async function handleConversion(imageData, settings) {
         'X-Title': 'CSV Everything Chrome Extension'
       },
       body: JSON.stringify({
-        model: settings.model || 'google/gemini-2.5-pro',
+        model: settings.model || 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: settings.prompt || 'turn the image into a csv'
+                text: settings.prompt || 'turn the image into a csv. only return a csv.'
               },
               {
                 type: 'image_url',
