@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const apiKeyInput = document.getElementById('apiKey');
   const modelInput = document.getElementById('model');
   const promptInput = document.getElementById('prompt');
+  const debugModeInput = document.getElementById('debugMode');
   const notification = document.getElementById('notification');
 
   // Load saved settings
@@ -11,10 +12,11 @@ document.addEventListener('DOMContentLoaded', function() {
   form.addEventListener('submit', handleSave);
 
   async function loadSettings() {
-    chrome.storage.sync.get(['apiKey', 'model', 'prompt'], (result) => {
+    chrome.storage.sync.get(['apiKey', 'model', 'prompt', 'debugMode'], (result) => {
       apiKeyInput.value = result.apiKey || '';
       modelInput.value = result.model || 'google/gemini-2.5-pro';
       promptInput.value = result.prompt || 'turn the image into a csv';
+      debugModeInput.checked = result.debugMode || false;
     });
   }
 
@@ -24,7 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const settings = {
       apiKey: apiKeyInput.value.trim(),
       model: modelInput.value.trim() || 'google/gemini-2.5-pro',
-      prompt: promptInput.value.trim() || 'turn the image into a csv'
+      prompt: promptInput.value.trim() || 'turn the image into a csv',
+      debugMode: debugModeInput.checked
     };
 
     if (!settings.apiKey) {

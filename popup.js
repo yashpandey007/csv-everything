@@ -29,12 +29,14 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
-      // Send to OpenRouter API
-      const csvData = await convertImageToCSV(imageData, settings);
+      // Send to background script for conversion
+      const result = await sendToBackground(imageData, settings);
       
-      // Trigger download
-      downloadCSV(csvData);
-      showSuccess('CSV file downloaded successfully');
+      if (result.success) {
+        showSuccess('CSV file downloaded successfully');
+      } else {
+        throw new Error(result.error);
+      }
       
     } catch (error) {
       console.error('Conversion error:', error);
@@ -76,56 +78,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  async function convertImageToCSV(imageData, settings) {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${settings.apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': chrome.runtime.getURL(''),
-        'X-Title': 'CSV Everything Chrome Extension'
-      },
-      body: JSON.stringify({
-        model: settings.model || 'google/gemini-2.5-pro',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: settings.prompt || 'turn the image into a csv'
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: imageData
-                }
-              }
-            ]
-          }
-        ],
-        max_tokens: 4000
-      })
+  async function sendToBackground(imageData, settings) {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({
+        action: 'convertImage',
+        imageData: imageData,
+        settings: settings
+      }, (response) => {
+        resolve(response);
+      });
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
-    }
-
-    const data = await response.json();
-    let csvContent = data.choices?.[0]?.message?.content;
-    
-    if (!csvContent) {
-      throw new Error('Could not convert this image to a csv');
-    }
-
-    // Strip markdown formatting
-    csvContent = csvContent.replace(/```csv\n?/g, '');
-    csvContent = csvContent.replace(/```\n?/g, '');
-    csvContent = csvContent.trim();
-
-    return csvContent;
   }
 
   async function getSettings() {
@@ -136,18 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  function downloadCSV(csvData) {
-    const blob = new Blob([csvData], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    
-    chrome.downloads.download({
-      url: url,
-      filename: 'data.csv',
-      saveAs: true
-    }, () => {
-      URL.revokeObjectURL(url);
-    });
-  }
+
 
   function showLoading(show) {
     loading.style.display = show ? 'flex' : 'none';
